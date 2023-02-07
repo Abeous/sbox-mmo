@@ -11,8 +11,8 @@ public partial class Hud : HudEntity<RootPanel>
 
 		RootPanel.StyleSheet.Load( "/UI/Hud.scss" );
 		RootPanel.AddChild<Chat>();
-		RootPanel.AddChild<Info>();
 		RootPanel.AddChild<Players>();
-		RootPanel.AddChild<Crosshair>();
+		RootPanel.AddChild<CameraBlock>();
 	}
+
 }

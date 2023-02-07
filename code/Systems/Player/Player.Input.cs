@@ -3,8 +3,17 @@ using System.ComponentModel;
 
 namespace Facepunch.Gunfight;
 
-public partial class Player
+public partial class MMOPlayer
 {
+	public enum CameraFocus
+	{
+		FocusNone,
+		FocusLook,
+		FocusMove
+	}
+
+
+
 	/// <summary>
 	/// Should be Input.AnalogMove
 	/// </summary>
@@ -19,6 +28,9 @@ public partial class Player
 	/// ?
 	/// </summary>
 	[ClientInput] public Entity ActiveWeaponInput { get; set; }
+
+	[Net, Predicted]
+	public CameraFocus Focus { get; set; }
 
 	/// <summary>
 	/// Position a player should be looking from in world space.
@@ -59,14 +71,15 @@ public partial class Player
 
 	public override void BuildInput()
 	{
-		Inventory?.BuildInput();
 
 		MoveInput = Input.AnalogMove;
-		var lookInput = (LookInput + Input.AnalogLook).Normal;
+		if (Focus != CameraFocus.FocusNone)
+		{
+			var lookInput = (LookInput + Input.AnalogLook).Normal;
+			LookInput = lookInput.WithPitch( lookInput.pitch.Clamp( -90f, 90f ) );
+		}
 
-		// Since we're a FPS game, let's clamp the player's pitch between -90, and 90.
-		LookInput = lookInput.WithPitch( lookInput.pitch.Clamp( -90f, 90f ) );
+			// Since we're a FPS game, let's clamp the player's pitch between -90, and 90.
 
-		PlayerCamera?.BuildInput( this );
 	}
 }

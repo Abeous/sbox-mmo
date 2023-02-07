@@ -2,7 +2,7 @@ using Sandbox;
 
 namespace Facepunch.Gunfight;
 
-public partial class Player
+public partial class MMOPlayer
 {
 	[ClientRpc]
 	private void CreateRagdoll( Vector3 velocity, Vector3 forcePos, Vector3 force, int bone, bool bullet, bool blast )

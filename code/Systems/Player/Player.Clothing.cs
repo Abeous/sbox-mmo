@@ -2,7 +2,7 @@ using Sandbox;
 
 namespace Facepunch.Gunfight;
 
-public partial class Player
+public partial class MMOPlayer
 {
 	public ClothingContainer Clothing { get; protected set; }
 

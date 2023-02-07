@@ -4,8 +4,8 @@ namespace Facepunch.Gunfight.Mechanics;
 
 public interface IInteractable
 {
-	bool OnUse( Player player );
-	bool IsUsable( Player player );
+	bool OnUse( MMOPlayer player );
+	bool IsUsable( MMOPlayer player );
 }
 
 public partial class InteractionMechanic : PlayerControllerMechanic, ISingletonComponent

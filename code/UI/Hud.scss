@@ -22,3 +22,16 @@ $blue: #3273eb;
         animation-direction: alternate;
     }
 }
+
+camerablock {
+    width: 0%;
+    height: 0%;
+}
+
+rootpanel {
+    pointer-events: none;
+}
+
+.pointer-event {
+    pointer-events: all;
+}

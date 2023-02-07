@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Facepunch.Gunfight;
 
-public partial class PlayerController : EntityComponent<Player>, ISingletonComponent
+public partial class PlayerController : EntityComponent<MMOPlayer>, ISingletonComponent
 {
 	public Vector3 LastVelocity { get; set; }
 	public Entity LastGroundEntity { get; set; }
@@ -14,7 +14,7 @@ public partial class PlayerController : EntityComponent<Player>, ISingletonCompo
 	public Vector3 GroundNormal { get; set; }
 	public float CurrentGroundAngle { get; set; }
 
-	public Player Player => Entity;
+	public MMOPlayer Player => Entity;
 
 	/// <summary>
 	/// A list of mechanics used by the player controller.
@@ -89,8 +89,11 @@ public partial class PlayerController : EntityComponent<Player>, ISingletonCompo
 
 	protected void SimulateEyes()
 	{
-		Player.EyeRotation = Player.LookInput.ToRotation();
-		Player.EyeLocalPosition = Vector3.Up * CurrentEyeHeight;
+		if (Player.Focus == MMOPlayer.CameraFocus.FocusMove) 
+		{
+			Player.EyeRotation = Player.LookInput.ToRotation();
+			Player.EyeLocalPosition = Vector3.Up * CurrentEyeHeight;
+		}
 	}
 
 	protected void SimulateMechanics()
@@ -190,8 +193,8 @@ public partial class PlayerController : EntityComponent<Player>, ISingletonCompo
 		result *= MoveInputScale;
 
 		var inSpeed = result.Length.Clamp( 0, 1 );
-		result *= Player.LookInput.WithPitch( 0f ).ToRotation();
-
+		result *= Player.EyeRotation.Angles().WithPitch( 0f ).ToRotation();
+		
 		if ( zeroPitch )
 			result.z = 0;
 

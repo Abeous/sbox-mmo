@@ -1,11 +1,10 @@
 using Facepunch.Gunfight.Mechanics;
-using Facepunch.Gunfight.WeaponSystem;
 using Sandbox;
 using System.Linq;
 
 namespace Facepunch.Gunfight;
 
-public partial class Player : AnimatedEntity
+public partial class MMOPlayer : AnimatedEntity
 {
 	/// <summary>
 	/// The controller is responsible for player movement and setting up EyePosition / EyeRotation.
@@ -16,16 +15,6 @@ public partial class Player : AnimatedEntity
 	/// The animator is responsible for animating the player's current model.
 	/// </summary>
 	[BindComponent] public PlayerAnimator Animator { get; }
-
-	/// <summary>
-	/// The inventory is responsible for storing weapons for a player to use.
-	/// </summary>
-	[BindComponent] public Inventory Inventory { get; }
-
-	/// <summary>
-	/// Accessor for getting a player's active weapon.
-	/// </summary>
-	public Weapon ActiveWeapon => Inventory?.ActiveWeapon;
 
 	/// <summary>
 	/// A camera is known only to the local client. This cannot be used on the server.
@@ -62,6 +51,8 @@ public partial class Player : AnimatedEntity
 		EnableLagCompensation = true;
 		EnableHitboxes = true;
 
+		Focus = CameraFocus.FocusNone;
+
 		Tags.Add( "player" );
 	}
 
@@ -96,9 +87,6 @@ public partial class Player : AnimatedEntity
 		Components.Create<InteractionMechanic>();
 
 		Components.Create<PlayerAnimator>();
-		var inventory = Components.Create<Inventory>();
-		inventory.AddWeapon( WeaponData.CreateInstance( "SMG" ) );
-		inventory.AddWeapon( WeaponData.CreateInstance( "Semi-Auto Pistol" ), false );
 
 		GameManager.Current?.MoveToSpawnpoint( this );
 		ResetInterpolation();
@@ -123,13 +111,14 @@ public partial class Player : AnimatedEntity
 	/// <param name="cl"></param>
 	public override void Simulate( IClient cl )
 	{
-		Rotation = LookInput.WithPitch( 0f ).ToRotation();
+		CheckCameraFocus();
+
+		//Rotation = LookInput.WithPitch( 0f ).ToRotation();
+		Rotation = (Focus == CameraFocus.FocusMove) ? LookInput.WithPitch( 0f ).ToRotation() : Rotation;
 
 		Controller?.Simulate( cl );
 		Animator?.Simulate( cl );
 
-		// Simulate our active weapon if we can.
-		Inventory?.Simulate( cl );
 	}
 
 	/// <summary>
@@ -138,13 +127,10 @@ public partial class Player : AnimatedEntity
 	/// <param name="cl"></param>
 	public override void FrameSimulate( IClient cl )
 	{
-		Rotation = LookInput.WithPitch( 0f ).ToRotation();
+		CheckCameraFocus();
 
 		Controller?.FrameSimulate( cl );
 		Animator?.FrameSimulate( cl );
-
-		// Simulate our active weapon if we can.
-		Inventory?.FrameSimulate( cl );
 
 		PlayerCamera?.Update( this );
 	}
@@ -212,7 +198,6 @@ public partial class Player : AnimatedEntity
 
 			Controller.Remove();
 			Animator.Remove();
-			Inventory.Remove();
 
 			// Disable all children as well.
 			Children.OfType<ModelEntity>()
@@ -259,12 +244,27 @@ public partial class Player : AnimatedEntity
 	[ConCmd.Server( "kill" )]
 	public static void DoSuicide()
 	{
-		(ConsoleSystem.Caller.Pawn as Player)?.TakeDamage( DamageInfo.Generic( 1000f ) );
+		(ConsoleSystem.Caller.Pawn as MMOPlayer)?.TakeDamage( DamageInfo.Generic( 1000f ) );
 	}
 
 	[ConCmd.Server( "sethp" )]
 	public static void SetHP( float value )
 	{
-		(ConsoleSystem.Caller.Pawn as Player).Health = value;
+		(ConsoleSystem.Caller.Pawn as MMOPlayer).Health = value;
+	}
+
+	private void CheckCameraFocus()
+	{
+		if ( Input.Pressed( InputButton.SecondaryAttack ) )
+			Focus = CameraFocus.FocusMove;
+
+		if ( Input.Pressed( InputButton.PrimaryAttack ) )
+			Focus = CameraFocus.FocusLook;
+
+		if ( Input.Released( InputButton.SecondaryAttack ) )
+			Focus = CameraFocus.FocusNone;
+
+		if ( Input.Released( InputButton.PrimaryAttack ) )
+			Focus = CameraFocus.FocusNone;
 	}
 }

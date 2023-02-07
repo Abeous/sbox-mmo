@@ -1,4 +1,3 @@
-using Facepunch.Gunfight.WeaponSystem;
 using Sandbox;
 using System;
 using System.ComponentModel;
@@ -6,7 +5,7 @@ using System.Dynamic;
 
 namespace Facepunch.Gunfight.Mechanics;
 
-public partial class PlayerControllerMechanic : EntityComponent<Player>
+public partial class PlayerControllerMechanic : EntityComponent<MMOPlayer>
 {
 	/// <summary>
 	/// Is this mechanic active?
@@ -33,7 +32,7 @@ public partial class PlayerControllerMechanic : EntityComponent<Player>
 	/// <summary>
 	/// Accessor for the player.
 	/// </summary>
-	protected Player Player => Controller.Player;
+	protected MMOPlayer Player => Controller.Player;
 
 	/// <summary>
 	/// Used to dictate the most important mechanic to take information such as EyeHeight, WishSpeed.

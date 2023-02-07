@@ -1,4 +1,3 @@
-using Facepunch.Gunfight.WeaponSystem;
 using Sandbox;
 
 namespace Facepunch.Gunfight.Mechanics;

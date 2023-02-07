@@ -1,8 +1,8 @@
 {
-  "Title": "FPS Sample",
+  "Title": "mmo",
   "Type": "game",
-  "Org": "devultj",
-  "Ident": "template_fps",
+  "Org": "local",
+  "Ident": "mmo",
   "Tags": "",
   "Schema": 1,
   "HasAssets": true,
@@ -16,7 +16,7 @@
     "GameNetworkType": "Multiplayer",
     "MapSelect": "Unrestricted",
     "MapList": [
-      "gkaf.motel"
+      "facepunch.flatgrass"
     ],
     "RankType": "None",
     "PerMapRanking": false,
