@@ -71,6 +71,8 @@ public partial class MMOPlayer
 
 	public override void BuildInput()
 	{
+		if ( Autorun )
+			Input.AnalogMove = Input.AnalogMove.WithX( 1 );
 
 		MoveInput = Input.AnalogMove;
 		if (Focus != CameraFocus.FocusNone)
@@ -79,7 +81,6 @@ public partial class MMOPlayer
 			LookInput = lookInput.WithPitch( lookInput.pitch.Clamp( -90f, 90f ) );
 		}
 
-			// Since we're a FPS game, let's clamp the player's pitch between -90, and 90.
-
+		PlayerCamera?.BuildInput( this );
 	}
 }

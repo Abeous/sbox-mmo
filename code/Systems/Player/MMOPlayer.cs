@@ -22,14 +22,11 @@ public partial class MMOPlayer : AnimatedEntity
 	public PlayerCamera PlayerCamera { get; protected set; }
 
 	/// <summary>
-	/// The information for the last piece of damage this player took.
-	/// </summary>
-	public DamageInfo LastDamage { get; protected set; }
-
-	/// <summary>
 	/// How long since the player last played a footstep sound.
 	/// </summary>
 	TimeSince TimeSinceFootstep = 0;
+
+	public bool Autorun { get; private set; } = false;
 
 	/// <summary>
 	/// A cached model used for all players.
@@ -67,6 +64,11 @@ public partial class MMOPlayer : AnimatedEntity
 		LifeState = LifeState.Alive;
 		EnableAllCollisions = true;
 		EnableDrawing = true;
+
+		//fix spawn in rotation bug
+		EyeRotation = Rotation;
+
+		Focus = CameraFocus.FocusNone;
 
 		// Re-enable all children.
 		Children.OfType<ModelEntity>()
@@ -141,44 +143,6 @@ public partial class MMOPlayer : AnimatedEntity
 		Audio.SetEffect( effectName, strength, velocity: 20.0f, fadeOut: 4.0f * strength );
 	}
 
-	public override void TakeDamage( DamageInfo info )
-	{
-		if ( LifeState != LifeState.Alive )
-			return;
-
-		// Check for headshot damage
-		var isHeadshot = info.Hitbox.HasTag( "head" );
-		if ( isHeadshot )
-		{
-			info.Damage *= 2.5f;
-		}
-
-		// Check if we got hit by a bullet, if we did, play a sound.
-		if ( info.HasTag( "bullet" ) )
-		{
-			Sound.FromScreen( To.Single( Client ), "sounds/player/damage_taken_shot.sound" );
-		}
-
-		// Play a deafening effect if we get hit by blast damage.
-		if ( info.HasTag( "blast" ) )
-		{
-			SetAudioEffect( To.Single( Client ), "flasthbang", info.Damage.LerpInverse( 0, 60 ) );
-		}
-
-		if ( Health > 0 && info.Damage > 0 )
-		{
-			Health -= info.Damage;
-
-			if ( Health <= 0 )
-			{
-				Health = 0;
-				OnKilled();
-			}
-		}
-
-		this.ProceduralHitReaction( info, 0.05f );
-	}
-
 	private async void AsyncRespawn()
 	{
 		await GameTask.DelaySeconds( 3f );
@@ -189,9 +153,6 @@ public partial class MMOPlayer : AnimatedEntity
 	{
 		if ( LifeState == LifeState.Alive )
 		{
-			CreateRagdoll( Controller.Velocity, LastDamage.Position, LastDamage.Force,
-				LastDamage.BoneIndex, LastDamage.HasTag( "bullet" ), LastDamage.HasTag( "blast" ) );
-
 			LifeState = LifeState.Dead;
 			EnableAllCollisions = false;
 			EnableDrawing = false;
@@ -255,16 +216,36 @@ public partial class MMOPlayer : AnimatedEntity
 
 	private void CheckCameraFocus()
 	{
-		if ( Input.Pressed( InputButton.SecondaryAttack ) )
+		//if right click is down and left click is not
+		if ( Input.Down( InputButton.SecondaryAttack ) && !Input.Down( InputButton.PrimaryAttack ) )
+		{
 			Focus = CameraFocus.FocusMove;
-
-		if ( Input.Pressed( InputButton.PrimaryAttack ) )
+			Autorun = false;
+		}
+		//if left click is down and right click is not
+		if ( Input.Down( InputButton.PrimaryAttack ) && !Input.Down( InputButton.SecondaryAttack ) )
+		{
 			Focus = CameraFocus.FocusLook;
-
-		if ( Input.Released( InputButton.SecondaryAttack ) )
+			Autorun = false;
+		}
+		//if both left and right click are down
+		if ( Input.Down( InputButton.PrimaryAttack ) && Input.Down( InputButton.SecondaryAttack ) )
+		{
+			Focus = CameraFocus.FocusMove;
+			Autorun = true;
+		}
+		//if right click is released and left click is not down
+		if ( Input.Released( InputButton.SecondaryAttack ) && !Input.Down( InputButton.PrimaryAttack ) )
+		{
 			Focus = CameraFocus.FocusNone;
-
-		if ( Input.Released( InputButton.PrimaryAttack ) )
+			Autorun = false;
+		}
+		//if left click is released and right click is not down
+		if ( Input.Released( InputButton.PrimaryAttack ) && !Input.Down( InputButton.SecondaryAttack) )
+		{
 			Focus = CameraFocus.FocusNone;
+			Autorun = false;
+		}
+
 	}
 }

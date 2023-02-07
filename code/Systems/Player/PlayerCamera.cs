@@ -6,6 +6,12 @@ namespace Facepunch.Gunfight;
 
 public partial class PlayerCamera
 {
+	public float Distance { get; set; } = 130f;
+	public virtual void BuildInput (MMOPlayer player) 
+	{
+		Distance -= (Input.MouseWheel * 6);
+	}
+
 	 public virtual void Update( MMOPlayer player )
 	{
 
@@ -21,7 +27,7 @@ public partial class PlayerCamera
 		var pos = center;
 		var rot = Camera.Rotation * Rotation.FromAxis( Vector3.Up, 0 );
 
-		float distance = 130.0f * player.Scale;
+		float distance = Distance * player.Scale;
 		targetPos = pos;
 		targetPos += rot.Backward * distance;
 
